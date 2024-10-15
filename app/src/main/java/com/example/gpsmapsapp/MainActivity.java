@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // Configuración del diseño para adaptarse a los insets del sistema (barras de navegación)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -46,7 +47,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Inicializar el cliente de ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Obtener el fragmento del mapa y notificar cuando esté listo
+        // Inicializar el mapa
+        initializeMap();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Código para inicializar cualquier otro recurso que se necesita para que la actividad funcione
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reanudar actualizaciones de ubicación cuando la actividad esté en primer plano
+        if (mMap != null) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Pausar actualizaciones de ubicación para ahorrar batería
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Limpiar recursos si es necesario cuando la actividad ya no es visible
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Liberar recursos antes de que la actividad sea destruida
+    }
+
+    // Método para inicializar el mapa
+    private void initializeMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -58,15 +98,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-            return;
-        }
-        getCurrentLocation();
+        // Comprobar permisos de ubicación
+        checkLocationPermission();
     }
 
+    // Método para verificar y solicitar permisos de ubicación
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            enableUserLocation();
+        }
+    }
+
+    // Método para habilitar la ubicación del usuario en el mapa
+    private void enableUserLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            getCurrentLocation();
+        }
+    }
+
+    // Método para obtener la ubicación actual
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -80,11 +138,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
                         } else {
                             Toast.makeText(MainActivity.this, "No se pudo obtener la ubicación actual.", Toast.LENGTH_SHORT).show();
-                            // Aquí podrías intentar obtener la ubicación nuevamente o guiar al usuario.
                         }
                     }
                 })
                 .addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Error al obtener ubicación: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    // Método para comenzar las actualizaciones de ubicación
+    private void startLocationUpdates() {
+        // Aquí podrías iniciar actualizaciones de ubicación continuas si fuera necesario
+        getCurrentLocation(); // Obtener la ubicación actual
+    }
+
+    // Método para detener las actualizaciones de ubicación
+    private void stopLocationUpdates() {
+        // Si tienes un listener de ubicación continuo, puedes detenerlo aquí
     }
 
     @SuppressLint("MissingSuperCall")
@@ -92,14 +160,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido, obtener la ubicación actual
-                getCurrentLocation();
+                enableUserLocation();
             } else {
                 Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
             }
         }
     }
 }
+
 
 
 
