@@ -41,9 +41,9 @@ Para mejorar la seguridad de la aplicación, se recomienda:
 4. **Validación y Sanitización**: Todas las entradas del usuario son validadas y sanitizadas para evitar inyecciones de código.
 
 ## Documentación Adicional
-- [Análisis de Vulnerabilidades](analisis_de_vulnerabilidades.md)
-- [Mejores Prácticas](best_practices.md)
-- [Implementación](implementacion.md)
+- [Análisis de Vulnerabilidades](../../../OneDrive/Escritorio/analisis_de_vulnerabilidades.md)
+- [Mejores Prácticas](../../../OneDrive/Escritorio/best_practices.md)
+- [Implementación](../../../OneDrive/Escritorio/implementacion.md)
 
 ## Cómo Ejecutar la Aplicación de Forma Segura
 1. Clona el repositorio.
